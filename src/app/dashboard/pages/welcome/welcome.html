@@ -1,0 +1,98 @@
+<div class="welcome-wrap">
+  <nz-row nzGutter="16">
+    <nz-col nzSpan="6" *ngIf="!loading">
+      <nz-card nzBordered>
+        <div class="card-item">
+          <div class="title">Jumlah Karyawan</div>
+          <div class="value">{{ totalEmployees }}</div>
+        </div>
+      </nz-card>
+    </nz-col>
+
+    <nz-col nzSpan="6" *ngIf="!loading">
+      <nz-card nzBordered>
+        <div class="card-item">
+          <div class="title">Total Izin</div>
+          <div class="value">{{ totalIzin }}</div>
+        </div>
+      </nz-card>
+    </nz-col>
+
+    <nz-col nzSpan="6" *ngIf="!loading">
+      <nz-card nzBordered>
+        <div class="card-item">
+          <div class="title">Rata-rata Hari Aktif</div>
+          <div class="value">{{ averageActiveDays }}</div>
+        </div>
+      </nz-card>
+    </nz-col>
+
+    <nz-col nzSpan="6" *ngIf="!loading">
+      <nz-card nzBordered>
+        <div class="card-item">
+          <div class="title">Status</div>
+          <div class="value">Stabil</div>
+        </div>
+      </nz-card>
+    </nz-col>
+  </nz-row>
+
+  <nz-row nzGutter="16" class="charts-row" *ngIf="!loading">
+    <nz-col nzSpan="14">
+      <nz-card nzTitle="Grafik Aktivitas (Bar)">
+        <div class="chart-container">
+          <!-- template reference untuk update -->
+          <canvas #barChart baseChart
+                  [data]="barChartData"
+                  [type]="barChartType"
+                  [options]="barChartOptions">
+          </canvas>
+        </div>
+      </nz-card>
+    </nz-col>
+
+    <nz-col nzSpan="10">
+      <nz-card nzTitle="Grafik Izin (Line)">
+        <div class="chart-container">
+          <canvas #lineChart baseChart
+                  [data]="lineChartData"
+                  [type]="lineChartType"
+                  [options]="lineChartOptions">
+          </canvas>
+        </div>
+      </nz-card>
+    </nz-col>
+  </nz-row>
+
+  <nz-row nzGutter="16" class="table-row" *ngIf="!loading">
+    <nz-col nzSpan="24">
+      <nz-card nzTitle="Tabel Ringkasan Performa">
+        <div class="table-actions">
+          <button nz-button nzType="default" (click)="resetSort()">Reset</button>
+          <button nz-button nzType="primary" (click)="sortByActiveDaysDesc()">Sort by ActiveDays</button>
+          <button nz-button nzType="default" (click)="sortByIzinDesc()">Sort by Izin</button>
+        </div>
+
+        <nz-table #basicTable [nzData]="listOfDisplayData" nzBordered nzSize="middle">
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>Hari Aktif</th>
+              <th>Izin</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of basicTable.data">
+              <td>{{ item.name }}</td>
+              <td>{{ item.activeDays }}</td>
+              <td>{{ item.izin }}</td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-card>
+    </nz-col>
+  </nz-row>
+
+  <nz-spin *ngIf="loading" nzTip="Memuat data..."></nz-spin>
+  <nz-alert *ngIf="!loading && errorMsg" nzType="error" [nzMessage]="errorMsg"></nz-alert>
+</div>

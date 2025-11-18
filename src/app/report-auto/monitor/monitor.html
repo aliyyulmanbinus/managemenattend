@@ -1,0 +1,65 @@
+<div class="monitor-wrap">
+  <nz-row nzGutter="24"> 
+    <!-- left: Pengaturan -->
+    <nz-col nzSpan="16">
+      <nz-card nzTitle="Pengaturan Laporan Otomatis">
+        <div class="form-row">
+          <nz-select nzPlaceHolder="Pilih Unit" style="width:60%" [ngModel]="null">
+            <nz-option nzLabel="RS MAYAPADA" nzValue="mayapada"></nz-option>
+            <nz-option nzLabel="RS Lainnya" nzValue="lain"></nz-option>
+          </nz-select>
+
+          <nz-select nzPlaceHolder="Jadwal" style="width:35%; margin-left:10px" [(ngModel)]="selectedSchedule">
+            <nz-option *ngFor="let s of scheduleOptions" [nzLabel]="s" [nzValue]="s"></nz-option>
+          </nz-select>
+        </div>
+
+        <div class="member-box">
+          <label class="label">Member</label>
+          <div class="member-input">
+            <input nz-input placeholder="Masukkan Email" [formControl]="form.controls['recipientEmail']" />
+            <button nz-button nzType="primary" (click)="addRecipient()" style="margin-left:8px">Tambahkan</button>
+          </div>
+
+          <nz-divider></nz-divider>
+
+          <div class="member-list">
+            <div *ngIf="recipients.length === 0" class="muted">Belum ada recipient</div>
+            <nz-list *ngIf="recipients.length>0" [nzDataSource]="recipients" nzBordered>
+              <ng-template #item let-email>
+                <nz-list-item>
+                  <div nz-row style="width:100%">
+                    <div nz-col nzSpan="20">{{ email }}</div>
+                    <div nz-col nzSpan="4" style="text-align:right">
+                      <a (click)="removeRecipient(email)">Hapus</a>
+                    </div>
+                  </div>
+                </nz-list-item>
+              </ng-template>
+            </nz-list>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button nz-button nzType="default" (click)="saveSettings()">Simpan Pengaturan</button>
+          <button nz-button nzType="primary" (click)="previewReport()" style="margin-left:8px">Preview Laporan</button>
+        </div>
+      </nz-card>
+    </nz-col>
+
+    <!-- right: Pilihan halaman/isi laporan -->
+    <nz-col nzSpan="8">
+      <nz-card nzTitle="Pengaturan Halaman Laporan">
+        <label nz-checkbox [(ngModel)]="includeTitle">Halaman 1: Judul</label>
+        <br/>
+        <label nz-checkbox [(ngModel)]="includeSummary">Halaman 2: Ringkasan & Statistik</label>
+        <br/>
+        <label nz-checkbox [(ngModel)]="includeBarChart">Grafik Aktivitas (Bar)</label>
+        <br/>
+        <label nz-checkbox [(ngModel)]="includeLineChart">Grafik Izin (Line)</label>
+        <br/>
+        <label nz-checkbox [(ngModel)]="includeTable">Tabel Aktivitas</label>
+      </nz-card>
+    </nz-col>
+  </nz-row>
+</div>

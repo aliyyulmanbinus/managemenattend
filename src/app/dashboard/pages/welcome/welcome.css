@@ -1,0 +1,40 @@
+.welcome-wrap {
+  padding: 16px;
+}
+
+.card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-item .title {
+  color: rgba(0,0,0,0.45);
+  font-size: 13px;
+}
+
+.card-item .value {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.charts-row {
+  margin-top: 16px;
+}
+
+/* pastikan chart punya tinggi karena maintainAspectRatio:false */
+.chart-container {
+  position: relative;
+  height: 360px; /* important - set tinggi nyata */
+  width: 100%;
+}
+
+.table-row {
+  margin-top: 16px;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}

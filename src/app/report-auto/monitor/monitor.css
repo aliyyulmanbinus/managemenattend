@@ -1,0 +1,29 @@
+.monitor-wrap {
+  padding: 16px;
+}
+
+.form-row {
+  display:flex;
+  gap:8px;
+  margin-bottom:12px;
+  align-items:center;
+}
+
+.member-box {
+  margin-top:12px;
+}
+
+.member-input {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-bottom:8px;
+}
+
+.member-list {
+  margin-top:8px;
+}
+
+.action-row {
+  margin-top:12px;
+}
