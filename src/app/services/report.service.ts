@@ -3,17 +3,43 @@ import { Employee } from '../models/employee.model';
 import { EmployeeData } from './employee-data';
 import { firstValueFrom } from 'rxjs';
 
-// pdfmake
-import * as pdfMake from 'pdfmake/build/pdfmake';
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
-(pdfMake as any).vfs = (pdfFonts as any).pdfMake.vfs;
+
+let pdfMakeLib: any = null;
+
+async function ensurePdfMakeLoaded(): Promise<any> {
+  if (pdfMakeLib) {
+    return pdfMakeLib;
+  }
+
+  // dynamic import so TypeScript/webpack treat it safely and we can normalize default/namespace exports
+  const pdfMakeModule: any = await import('pdfmake/build/pdfmake');
+  const pdfFontsModule: any = await import('pdfmake/build/vfs_fonts');
+
+  const pdfMakeCandidate = pdfMakeModule && (pdfMakeModule.default || pdfMakeModule);
+  const pdfFontsCandidate = pdfFontsModule && (pdfFontsModule.default || pdfFontsModule);
+
+  pdfMakeLib = pdfMakeCandidate;
+
+  // find vfs in fonts module (it may be exported as pdfMake.vfs or vfs)
+  const vfs =
+    pdfFontsCandidate.pdfMake?.vfs ||
+    pdfFontsCandidate.vfs ||
+    pdfFontsCandidate.pdfMake;
+
+  // attach vfs onto pdfMake object (mutating runtime object is OK)
+  if (pdfMakeLib) {
+    (pdfMakeLib as any).vfs = vfs;
+  }
+
+  return pdfMakeLib;
+}
 
 export interface ReportSettings {
-  recipients: string[];         // daftar email SuperAdmin
+  recipients: string[];
   includeTitle: boolean;
   includeSummary: boolean;
   includeBarChart: boolean;
-  includeLineChart: boolean; 
+  includeLineChart: boolean;
   includeTable: boolean;
   timestamp?: string;
 }
@@ -28,9 +54,6 @@ export class ReportService {
     return firstValueFrom(this.empService.getEmployees());
   }
 
-  /**
-   * Generate simple report data (summary and top performers)
-   */
   async generateReportData(): Promise<{
     employees: Employee[],
     mostActive?: Employee,
@@ -60,6 +83,9 @@ export class ReportService {
    * images: optional object { barChart?: dataUrl, lineChart?: dataUrl }
    */
   async previewPdf(settings: ReportSettings, images?: { barChart?: string; lineChart?: string }) {
+    // ensure pdfMake runtime + vfs loaded
+    const pdfMake = await ensurePdfMakeLoaded();
+
     const data = await this.generateReportData();
 
     const content: any[] = [];
@@ -90,18 +116,17 @@ export class ReportService {
           widths: ['*','*','*'],
           body: [
             [{ text: 'Total Karyawan', bold: true }, { text: 'Total Izin', bold: true }, { text: 'Rata-rata Hari Aktif', bold: true }],
-            [data.summary.totalEmployees.toString(), data.summary.totalIzin.toString(), data.summary.averageActiveDays.toString()]
+            [{ text: data.summary.totalEmployees.toString() }, { text: data.summary.totalIzin.toString() }, { text: data.summary.averageActiveDays.toString() }]
           ]
         },
         layout: 'noBorders',
         margin: [0, 0, 0, 10]
       });
 
-      // most active / most leave
       content.push({
         columns: [
-          { text: `Karyawan Paling Aktif: ${data.mostActive ? data.mostActive.name + ' (' + data.mostActive.activeDays + ')' : '-'}`, width: '50%' },
-          { text: `Karyawan Paling Izin: ${data.mostLeave ? data.mostLeave.name + ' (' + data.mostLeave.izin + ')' : '-'}`, width: '50%', alignment: 'right' }
+          { text: `Karyawan Paling Aktif: ${data.mostActive ? `${data.mostActive.name} (${data.mostActive.activeDays})` : '-'}`, width: '50%' },
+          { text: `Karyawan Paling Izin: ${data.mostLeave ? `${data.mostLeave.name} (${data.mostLeave.izin})` : '-'}`, width: '50%', alignment: 'right' }
         ],
         margin: [0, 0, 0, 10]
       });
@@ -128,30 +153,28 @@ export class ReportService {
 
     // Table
     if (settings.includeTable) {
-    const body: any[] = [
+      const body: any[] = [
         [{ text: 'Nama', bold: true }, { text: 'Hari Aktif', bold: true }, { text: 'Izin', bold: true }]
-    ];
+      ];
 
-    data.employees.forEach(emp => {
+      data.employees.forEach(emp => {
         body.push([
-        { text: emp.name },
-        { text: emp.activeDays != null ? emp.activeDays.toString() : '0' },
-        { text: emp.izin != null ? emp.izin.toString() : '0' }
+          { text: emp.name },
+          { text: emp.activeDays != null ? emp.activeDays.toString() : '0' },
+          { text: emp.izin != null ? emp.izin.toString() : '0' }
         ]);
-    });
+      });
 
-    content.push({ text: 'Tabel Aktivitas Karyawan', style: 'subheader', margin: [0, 8, 0, 6] });
-    content.push({
+      content.push({ text: 'Tabel Aktivitas Karyawan', style: 'subheader', margin: [0, 8, 0, 6] });
+      content.push({
         table: {
-        headerRows: 1,
-        widths: ['*', 80, 60],
-        body
+          headerRows: 1,
+          widths: ['*', 80, 60],
+          body
         }
-    });
+      });
     }
 
-
-    // Document definition
     const docDefinition: any = {
       content,
       styles: {
@@ -164,7 +187,7 @@ export class ReportService {
       }
     };
 
-    // Open preview in new window (pdfMake provides open())
-    (pdfMake as any).createPdf(docDefinition).open();
+    // create and open
+    pdfMake.createPdf(docDefinition).open();
   }
 }

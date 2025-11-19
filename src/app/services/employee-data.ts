@@ -7,15 +7,17 @@ import { Observable, map } from 'rxjs';
   providedIn: 'root',
 })
 export class EmployeeData {
-  private dataUrl = 'assets/data/employees.json';
+  private dataUrl = 'https://dataattend-da1c2-default-rtdb.asia-southeast1.firebasedatabase.app/employees.json';
 
   constructor(private http: HttpClient) { }
 
   getEmployees(): Observable<Employee[]> {
-    return this.http.get<{ employees: Employee[] }>(this.dataUrl)
+    return this.http.get<{ [key: string]: Employee }>(this.dataUrl)
       .pipe(
-        map(resp => resp && resp.employees ? resp.employees : [])
+        map(resp => {
+          // Konversi object Firebase ke dalam bentuk array
+          return resp ? Object.values(resp) : [];
+        })
       );
   }
-  
 }
